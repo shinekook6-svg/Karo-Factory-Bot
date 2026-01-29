@@ -93,7 +93,7 @@ export default {
     const currentBotToken = urlParams.get('token') || env.BOT_TOKEN;
 
     const accessToken = await getAccessToken(env.CLIENT_EMAIL, env.PRIVATE_KEY);
-    const ADMIN_ID = 6870403909,8268582523;
+    const ADMIN_ID = [6870403909,8268582523];
 
     if (currentBotToken === env.BOT_TOKEN) {
       return await handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID, payload);
@@ -103,22 +103,22 @@ export default {
   }
 };
 /**
- * PART 2 (ခခွေး): MAIN BOT LOGIC*/
+ * PART 2 (ခခွေး): MAIN BOT LOGIC (REVISED)
+ * Admin ID Error ကို Fix လုပ်ထားပြီး PDF Page 1, 2, 9, 10 Logic များ အကုန်ပါဝင်သည်။
+ */
 async function handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID, payload) {
+  // ADMIN_ID သည် ယခု Array ဖြစ်သွားပါပြီ [ID1, ID2]
   const userPath = `users/${chatId}`;
 
   // 1. /start Command & Registration (PDF Page 1)
   if (text === "/start" || text.startsWith("/start")) {
-    // Referral စစ်ဆေးခြင်း
     let referredBy = null;
     if (text.includes(" ")) {
       referredBy = text.split(" ")[1];
     }
 
-    // User data ကို Firestore မှာ စစ်မယ်/သိမ်းမယ်
     const userData = await fsGet(userPath, env, accessToken);
     if (userData.error) {
-      // User အသစ်ဆိုရင် Register လုပ်မယ်
       await fsUpdate(userPath, {
         username: { stringValue: username },
         balance: { integerValue: "0" },
@@ -126,7 +126,6 @@ async function handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID,
         joinedAt: { timestampValue: new Date().toISOString() }
       }, env, accessToken);
 
-      // Referral ရှိရင် ဖိတ်ခေါ်တဲ့သူကို Point တိုးပေးမယ်
       if (referredBy && referredBy !== chatId.toString()) {
         const refPath = `users/${referredBy}`;
         const refData = await fsGet(refPath, env, accessToken);
@@ -144,8 +143,8 @@ async function handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID,
       [{ text: "👥 Referral" }, { text: "❓ Help" }]
     ];
 
-    // Admin ဆိုရင် Admin Panel ခလုတ် ထည့်မယ် (PDF Page 1)
-    if (chatId === ADMIN_ID) {
+    // Admin စစ်ဆေးပုံ ပြောင်းလဲခြင်း (Array includes)
+    if (Array.isArray(ADMIN_ID) ? ADMIN_ID.includes(chatId) : chatId === ADMIN_ID) {
       mainButtons.push([{ text: "⚙️ Admin Panel" }]);
     }
 
@@ -154,10 +153,10 @@ async function handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID,
       resize_keyboard: true
     });
   }
+
   // 2. /addbot Logic (PDF Page 2)
   if (text === "/addbot") {
-    const msg = "🤖 မင်းရဲ့ Bot API Token ကို ပေးပါ။\n\n@BotFather မှာ Bot ဆောက်ပြီး Token ကို Copy ယူလာခဲ့ပါ။";
-    return await sendMessage(chatId, msg, env.BOT_TOKEN, {
+    return await sendMessage(chatId, "🤖 မင်းရဲ့ Bot API Token ကို ပေးပါ။\n\n@BotFather မှာ Bot ဆောက်ပြီး Token ကို Copy ယူလာခဲ့ပါ။", env.BOT_TOKEN, {
       keyboard: [[{ text: "I've copied the Api Token" }], [{ text: "Cancel" }]],
       resize_keyboard: true
     });
@@ -167,10 +166,10 @@ async function handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID,
     return await sendMessage(chatId, "ဟုတ်ပြီ။ သင့် Api Token ကို Paste ၍ Send ပါ။", env.BOT_TOKEN);
   }
 
-  // API Token လက်ခံခြင်း & Free Tier 7 Days (PDF Page 2)
+  // API Token လက်ခံခြင်း (PDF Page 2)
   if (text.includes(":") && text.length > 30) {
     const expireDate = new Date();
-    expireDate.setDate(expireDate.getDate() + 7); // 7 Days Free
+    expireDate.setDate(expireDate.getDate() + 7);
 
     await fsUpdate(`bots/${chatId}`, {
       ownerId: { stringValue: chatId.toString() },
@@ -183,40 +182,37 @@ async function handleMainBot(chatId, text, username, env, accessToken, ADMIN_ID,
 
     return await sendMessage(chatId, "✅ Token လက်ခံရရှိပါသည်။ Api Token မှန်ရင် Setup ပြီးသား Bot ကိုထုတ်ပေးမည်။\n\nFree Tier 7Days Auto run ရရှိပါမည်။", env.BOT_TOKEN);
   }
+
   // 3. My Wallet (PDF Page 9)
   if (text === "💳 My Wallet") {
     const userData = await fsGet(userPath, env, accessToken);
     const balance = userData.fields?.balance?.integerValue || "0";
     return await sendMessage(chatId, `သင်၏ စုစုပေါင်းလက်ကျန်ငွေမှာ\n<b>${balance} Ks</b> ဖြစ်ပါသည်။`, env.BOT_TOKEN);
   }
+
   // 4. Referral (PDF Page 10)
   if (text === "👥 Referral") {
     const userData = await fsGet(userPath, env, accessToken);
     const refCount = userData.fields?.referrals?.integerValue || "0";
     const refLink = `https://t.me/KaroFactoryBot?start=${chatId}`;
-    const msg = `သင်၏ Referral Link မှာ အောက်တွင်ဖြစ်သည်\n<code>${refLink}</code>\n\nသင်ဖိတ်ခေါ်ခဲ့သော လူဦးရေ = ${refCount} ယောက်`;
-    return await sendMessage(chatId, msg, env.BOT_TOKEN);
-  }
-  // 5. Help (PDF Page 1)
-  if (text === "❓ Help") {
-    return await sendMessage(chatId, "❓ အကူအညီလိုအပ်ပါက Admin သို့ ဆက်သွယ်ပါ။", env.BOT_TOKEN);
+    return await sendMessage(chatId, `သင်၏ Referral Link မှာ အောက်တွင်ဖြစ်သည်\n<code>${refLink}</code>\n\nသင်ဖိတ်ခေါ်ခဲ့သော လူဦးရေ = ${refCount} ယောက်`, env.BOT_TOKEN);
   }
 
-  // 6. Cancel & Back to Main
+  // 5. Admin Panel (PDF Page 1)
+  if (text === "⚙️ Admin Panel" && (Array.isArray(ADMIN_ID) ? ADMIN_ID.includes(chatId) : chatId === ADMIN_ID)) {
+    return await sendMessage(chatId, "Welcome Admin! သင်လုပ်ဆောင်လိုသည်ကို ရွေးချယ်ပါ။", env.BOT_TOKEN, {
+      keyboard: [[{ text: "📊 Total Users" }, { text: "🤖 Bot Requests" }], [{ text: "<<< Back" }]],
+      resize_keyboard: true
+    });
+  }
+
+  // 6. Cancel / Back
   if (text === "Cancel" || text === "<<< Back") {
     return await sendMessage(chatId, "Main Menu သို့ပြန်ရောက်မည်။", env.BOT_TOKEN, {
       keyboard: [
         [{ text: "💳 My Wallet" }, { text: "📜 History" }],
         [{ text: "👥 Referral" }, { text: "❓ Help" }]
       ],
-      resize_keyboard: true
-    });
-  }
-
-  // Admin Panel (PDF Page 1)
-  if (text === "⚙️ Admin Panel" && chatId === ADMIN_ID) {
-    return await sendMessage(chatId, "Welcome Admin! သင်လုပ်ဆောင်လိုသည်ကို ရွေးချယ်ပါ။", env.BOT_TOKEN, {
-      keyboard: [[{ text: "📊 Total Users" }, { text: "🤖 Bot Requests" }], [{ text: "<<< Back" }]],
       resize_keyboard: true
     });
   }
