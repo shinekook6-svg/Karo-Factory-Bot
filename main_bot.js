@@ -267,6 +267,7 @@ await fsUpdate(`users/${targetUserId}`, { balance: { integerValue: newBal } }, e
         parse_mode: "HTML"
       }, token);
     }
+  }
   // --- 2. MESSAGE HANDLING ---
   if (payload.message) {
     const chatId = payload.message.chat.id;
@@ -588,8 +589,7 @@ try {
       const menuText = text.includes("Admin") ? "Admin Panel သို့ ပြန်ရောက်ပါပြီ။" : "Main Menu သို့ ပြန်ရောက်ပါပြီ။";
       return await tg("sendMessage", { chat_id: chatId, text: menuText, reply_markup: mainKeyboard }, token);
     }
+      return new Response("OK"); 
   }
-  return new Response("OK"); 
+  return new Response("OK");
         }
-  return new Response("OK);
-}
