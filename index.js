@@ -14,22 +14,23 @@ export default {
 
     try {
       const payload = await request.json();
-      const accessToken = await getAccessToken(env.CLIENT_EMAIL, env.PRIVATE_KEY);
       
-      // URL ကနေ Token ကို ဆွဲထုတ်မယ် (ဥပမာ- https://worker.dev/TOKEN)
+      // ပြင်ဆင်လိုက်သည့်နေရာ: env တစ်ခုလုံးကို ပို့ပေးရပါမယ်
+      const accessToken = await getAccessToken(env);
+      
+      // URL ကနေ Token ကို ဆွဲထုတ်မယ်
       const url = new URL(request.url);
       const pathToken = url.pathname.split("/").pop();
 
       /**
-       * Logic လမ်းကြောင်းခွဲခြင်း
-       * 1. Path က Main Bot Token မဟုတ်ဘူး၊ ဒါပေမဲ့ Token Format (:) ပါနေရင် Child Bot ဆီသွားမယ်
+       * 1. Child Bot Logic
        */
       if (pathToken !== env.BOT_TOKEN && pathToken.includes(":")) {
         return await handleChildBot(payload, pathToken, env, accessToken);
       } 
       
       /**
-       * 2. မဟုတ်ရင် Main Bot (Factory Bot) logic ဆီ သွားမယ်
+       * 2. Main Bot Logic
        */
       return await handleMainBot(payload, env, accessToken);
 
@@ -41,11 +42,9 @@ export default {
 
   // --- Background Tasks (Cron Triggers) ---
   async scheduled(event, env, ctx) {
-    // Cron အလုပ်လုပ်တဲ့အခါ Access Token ကြိုယူထားမယ်
-    const accessToken = await getAccessToken(env.CLIENT_EMAIL, env.PRIVATE_KEY);
+    // ပြင်ဆင်လိုက်သည့်နေရာ: env တစ်ခုလုံးကို ပို့ပေးရပါမယ်
+    const accessToken = await getAccessToken(env);
     
-    // Background မှာ အလုပ်လုပ်ခိုင်းမယ် (Response ပြန်ဖို့ စောင့်စရာမလို)
     ctx.waitUntil(handleScheduled(event, env, accessToken));
   }
 };
-
