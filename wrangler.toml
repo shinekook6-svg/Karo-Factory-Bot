@@ -1,3 +1,8 @@
 name = "karo-factory-bot"
 main = "index.js"
 compatibility_date = "2026-01-28"
+compatibility_flags = [ "nodejs_compat" ]
+
+# --- Cron Trigger ထည့်သွင်းခြင်း ---
+[triggers]
+crons = [ "* * * * *" ] # ဒါက ၁ မိနစ် တစ်ခါ
