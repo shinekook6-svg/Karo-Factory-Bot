@@ -354,7 +354,6 @@ if (userStatus.startsWith("awaiting_name_")) {
         }
       }, token);
     }
-}
   // --- 6. Callback Logic ---
   if (isCallback) {
     if (callbackData === "admin_pay_setup") {
@@ -884,3 +883,4 @@ if (callbackData.startsWith("topup_ref_")) {
    return new Response("OK");
   }
 return new Response("OK");
+}
