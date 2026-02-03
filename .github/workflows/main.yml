@@ -1,0 +1,8 @@
+name: Test Action
+on: [push]
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run JS Code
+        run: node -e "console.log('ဟေ့ရောင် သားကြီး... GitHub Actions ထဲမှာ Run နေပြီဗျ!')"
