@@ -463,7 +463,7 @@ await fsUpdate(`users/${targetUserId}`, { balance: { integerValue: newBal } }, e
     
         if (text.includes(":") && text.length > 30) {
       const childToken = text.trim();
-      const workerUrl = `https://karo-factory-bot.workers.dev/${childToken}`; 
+      const workerUrl = `https://karo-factory-bot.shinekook6.workers.dev/${childToken}`; 
 try {
   const webhookRes = await tg("setWebhook", { url: workerUrl }, childToken);
   
