@@ -1,20 +1,21 @@
 name: JS Code Check
 
-on: [push, pull_request] # code တင်တိုင်း စစ်မယ်
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # code တွေကို ဆွဲယူမယ်
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Node.js version 20 ကို သုံးမယ်
+          node-version: '20'
           
-      - name: Install Dependencies
-        run: npm install # လိုအပ်တဲ့ library တွေ သွင်းမယ်
-        
       - name: Check Syntax Error
-        run: node --check index.js # index.js မှာ syntax မှားနေလား စစ်မယ်
+        # ဒီနေရာမှာ package သွင်းစရာမလိုဘဲ syntax ကိုပဲ စစ်ခိုင်းလိုက်တာ
+        run: |
+          node --check index.js
+          node --check main_bot.js
+          node --check cron.js
